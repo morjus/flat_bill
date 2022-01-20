@@ -1,3 +1,9 @@
+import os
+import webbrowser
+
+from fpdf import FPDF
+
+
 class Flatmate:
     def __init__(self, name, days_in_house):
         self.name = name
@@ -32,24 +38,53 @@ class PdfReport:
     def __init__(self, filename):
         self.filename = filename
 
+    def open(self, filename=None):
+        URI = "file://" + os.path.realpath(filename or self.filename)
+        webbrowser.open(URI)
+
     def generate(self, bill, flatmates):
-        pass
+        pdf = FPDF(orientation="P", unit="pt", format="A4")
+        pdf.add_page()
+        image_path = os.path.join(os.getcwd(), "files", "house.png")
+
+        pdf.image(name=image_path, w=30, h=30)
+        pdf.set_font(family="arial", style="b", size=24)
+        pdf.cell(w=0, h=60, txt="Flatmates Bill", align="C", ln=1)
+
+        pdf.set_font(family="arial", style="b", size=14)
+        pdf.cell(w=100, h=40, txt="Period:")
+        pdf.cell(w=150, h=40, txt=f"{bill.period}", ln=1)
+
+        pdf.set_font(family="arial", size=12)
+        for mate in flatmates:
+            pdf.cell(w=100, h=25, txt=f"{mate.name}")
+            pdf.cell(w=150, h=25, txt=f"{round(mate.cost_for_flat, 2)}", ln=1)
+
+        pdf.set_font(family="arial", style="b", size=14)
+        pdf.cell(w=100, h=25, txt=f"Total bill:")
+        pdf.cell(w=150, h=25, txt=f"{bill.amount}")
+        pdf.output(name=f"{self.filename}")
+        return self
 
 
 def main():
-    bill = Bill(amount=120, period="March 2020")
+    the_bill = Bill(amount=120, period="March 2020")
 
     adam = Flatmate(name="Adam", days_in_house=20)
     eva = Flatmate(name="Eva", days_in_house=25)
-    charlie = Flatmate(name="Charlie", days_in_house=0)
+    charlie = Flatmate(name="Charlie", days_in_house=3)
     flatmates = (adam, eva, charlie)
-    bills = bill.split_by_flatmates(*flatmates)
+    bills = the_bill.split_by_flatmates(*flatmates)
 
     for name, bill in bills.items():
         for mate in flatmates:
             if mate.name == name:
                 mate.cost_for_flat = bill
                 print(f"{mate.name} pays {mate.cost_for_flat}")
+
+    report = PdfReport(filename="march.pdf")
+    report.generate(bill=the_bill, flatmates=flatmates)
+    report.open()
 
 
 if __name__ == "__main__":
