@@ -3,6 +3,8 @@ import webbrowser
 
 from fpdf import FPDF
 
+from utils import input_handler
+
 
 class Flatmate:
     def __init__(self, name, days_in_house):
@@ -20,7 +22,6 @@ class Flatmate:
 
 
 class Bill:
-
     def __init__(self, amount, period):
         self.amount = amount
         self.period = period
@@ -29,7 +30,7 @@ class Bill:
         bills = dict()
         delimiter = sum([mate.days_in_house for mate in args])
         for mate in args:
-            bill = self.amount*(mate.days_in_house/delimiter)
+            bill = self.amount * (mate.days_in_house / delimiter)
             bills[mate.name] = bill
         return bills
 
@@ -38,8 +39,11 @@ class PdfReport:
     def __init__(self, filename):
         self.filename = filename
 
-    def open(self, filename=None):
-        URI = "file://" + os.path.realpath(filename or self.filename)
+    def _make_uri(self):
+        return "file://" + os.path.realpath(self.filename)
+
+    def open(self):
+        URI = self._make_uri()
         webbrowser.open(URI)
 
     def generate(self, bill, flatmates):
@@ -57,23 +61,32 @@ class PdfReport:
 
         pdf.set_font(family="arial", size=12)
         for mate in flatmates:
-            pdf.cell(w=100, h=25, txt=f"{mate.name}")
+            pdf.cell(
+                w=150, h=25, txt=f"{mate.name} is owe for {mate.days_in_house} days"
+            )
             pdf.cell(w=150, h=25, txt=f"{round(mate.cost_for_flat, 2)}", ln=1)
 
         pdf.set_font(family="arial", style="b", size=14)
-        pdf.cell(w=100, h=25, txt=f"Total bill:")
+        pdf.cell(w=150, h=25, txt=f"Total bill:")
         pdf.cell(w=150, h=25, txt=f"{bill.amount}")
         pdf.output(name=f"{self.filename}")
         return self
 
 
 def main():
-    the_bill = Bill(amount=120, period="March 2020")
+    flatmates = []
+    flatmates_qty = 2
+    amount = input_handler(text="Enter the bill amount", return_type=int)
+    period = input_handler(text="What is the bill period? E.g March 2020: ")
+    the_bill = Bill(amount=amount, period=period)
 
-    adam = Flatmate(name="Adam", days_in_house=20)
-    eva = Flatmate(name="Eva", days_in_house=25)
-    charlie = Flatmate(name="Charlie", days_in_house=3)
-    flatmates = (adam, eva, charlie)
+    for mate_number in range(1, flatmates_qty + 1):
+        name = input_handler(text=f"Enter the name of {mate_number} flatmate: ")
+        days = input_handler(
+            text=f"Enter the days in house of {name}: ", return_type=int
+        )
+        flatmates.append(Flatmate(name=name, days_in_house=days))
+
     bills = the_bill.split_by_flatmates(*flatmates)
 
     for name, bill in bills.items():
@@ -82,7 +95,7 @@ def main():
                 mate.cost_for_flat = bill
                 print(f"{mate.name} pays {mate.cost_for_flat}")
 
-    report = PdfReport(filename="march.pdf")
+    report = PdfReport(filename=f"{the_bill.period}.pdf")
     report.generate(bill=the_bill, flatmates=flatmates)
     report.open()
 
