@@ -1,7 +1,7 @@
-from bill import Bill
-from flatmate import Flatmate
-from report import PdfReport
-from utils import input_handler
+from classes.bill import Bill
+from classes.flatmate import Flatmate
+from classes.report import PdfReport
+from utils.utils import input_handler
 
 
 def main():

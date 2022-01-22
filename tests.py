@@ -3,10 +3,10 @@ import unittest
 
 from unittest.mock import patch
 
-from report import PdfReport
-from bill import Bill
-from flatmate import Flatmate
-from utils import input_handler
+from classes.report import PdfReport
+from classes.bill import Bill
+from classes.flatmate import Flatmate
+from utils.utils import input_handler
 
 
 class TestInputHandler(unittest.TestCase):
