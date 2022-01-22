@@ -3,7 +3,9 @@ import unittest
 
 from unittest.mock import patch
 
-from main import Flatmate, Bill, PdfReport
+from report import PdfReport
+from bill import Bill
+from flatmate import Flatmate
 from utils import input_handler
 
 
